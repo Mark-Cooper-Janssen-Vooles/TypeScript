@@ -4,6 +4,8 @@
 
 in terminal run: "tsc <filename>.ts" to compile, or "tsc <filename>.ts -w" to watch, aka reload whenever it changes
 
+to watch the whole project, "tsc --init" (creates tsconfig.json file), can now run "tsc" and it will compile all files in the project. Or "tsc -w" and it will watch them too.
+
 **Core Types typescript supports**
 
 - number => 1, 4.3, -10 => all numbers, do differene between integers or floats
@@ -189,3 +191,117 @@ if (typeof userInput === "string") {
 
 // a better choice than any, less flexible
 ````
+
+
+---
+
+To use debugger in vs code: download vs code extension "debugger for chrome" and in the tsconfig file, set sourceMap to true
+
+
+
+---
+
+
+classes: 
+
+````ts
+class Department {
+  name: string;
+  employees: string[] = [];
+
+  constructor(n: string) {
+    this.name = n;
+  }
+
+  describe(this: Department) {
+    console.log(`Department: ${this.name}`)
+  }
+
+  addEmployee(employee: string) {
+    this.employees.push(employee);
+  }
+
+  printEmployeeInfo() {
+    console.log(this.employees.length);
+    console.log(this.employees);
+  }
+}
+
+const coles = new Department("Coles");
+coles.describe();
+
+
+coles.addEmployee("Not Mark");
+coles.addEmployee("Manure");
+coles.employees[2] = "Anna";
+coles.printEmployeeInfo();
+````
+
+in the above code, you can access employees by coles.employees[2] = "Anna"; but maybe you don't want to be able to access it outside the class just in case! So you can create a private propery: 
+
+````ts
+class Department {
+  name: string;
+  private employees: string[] = [];
+
+  constructor(n: string) {
+    this.name = n;
+  }
+  //...etc
+````
+
+Can also mark methods as private!
+Private is the "modifier", you also have "public" but that is the default for classes.
+
+
+-----
+
+class initialization shortcut for typescript: 
+
+````ts
+class Department {
+  // private id: string;
+  // private name: string;
+  private employees: string[] = [];
+
+  constructor(private id: string, public name: string) {
+    //above is a typescript shortcut instead of stating the id and name twice!
+
+    // this.name = n;
+    // this.id = id;
+  }
+````
+
+
+"readonly" properties (to make sure things can't change, i.e. once initialized it can't be modified!) allows you to be very explicit 
+
+ie
+````ts
+constructor(private readonly id: string, public name: string) {
+  }
+  ````
+
+private makes a property / method only available within the class it originates. To make it available in inherited classes as well, you can use "protected".
+
+----
+
+adding static methods and properties: (a utility method, accessible without instantiating the class) ie: 
+
+````ts
+class Department {
+  static fiscalYear = 2020;
+  protected employees: string[] = [];
+
+  constructor(private readonly id: string, public name: string) {
+  }
+
+  static createEmployee(name: string) {
+    return {name: name};
+  }
+}
+const employee1 = Department.createEmployee("Joe");
+console.log(employee1);
+console.log(Department.fiscalYear);
+````
+
+
