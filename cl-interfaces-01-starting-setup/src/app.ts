@@ -1,10 +1,10 @@
-class Department {
+abstract class Department {
   // private id: string;
   // private name: string;
   static fiscalYear = 2020;
   protected employees: string[] = [];
 
-  constructor(private readonly id: string, public name: string) {
+  constructor(protected readonly id: string, public name: string) {
     //above is a typescript shortcut instead of stating the id and name twice!
 
     // this.name = n;
@@ -15,9 +15,11 @@ class Department {
     return {name: name};
   }
 
-  describe(this: Department) {
-    console.log(`Department ${this.id}: ${this.name}`)
-  }
+  // describe(this: Department) {
+  //   console.log(`Department ${this.id}: ${this.name}`)
+  // }
+
+  abstract describe(this: Department): void;
 
   addEmployee(employee: string) {
     this.employees.push(employee);
@@ -36,10 +38,15 @@ class ITDepartment extends Department {
     //have to call super before using 'this' keyword.
     this.admins = admins;
   }
+
+  describe() {
+    console.log("IT Department - ID: " + this.id);
+  }
 }
 
 class AccountingDepartment extends Department {
   private lastReport: string;
+  private static instance: AccountingDepartment;
 
   get mostRecentReport() {
     if (this.lastReport) {
@@ -54,9 +61,17 @@ class AccountingDepartment extends Department {
     }
   }
 
-  constructor(id: string, private reports: string[]) {
+  private constructor(id: string, private reports: string[]) {
     super(id, "IT");
     this.lastReport = reports[0];
+  }
+
+  static getInstance() {
+    if(AccountingDepartment.instance) {
+      return this.instance;
+    } 
+    this.instance = new AccountingDepartment("d2", []);
+    return this.instance;
   }
 
   addReport(text: string) {
@@ -66,6 +81,10 @@ class AccountingDepartment extends Department {
 
   printReports() {
     console.log(this.reports);
+  }
+
+  describe() {
+    console.log('Accounting department id:' + this.id)
   }
 
   addEmployee(name: string) {
@@ -92,7 +111,8 @@ coles.printEmployeeInfo();
 // colesCopy.describe();
 
 
-const accounting = new AccountingDepartment("d2", []);
+// const accounting = new AccountingDepartment("d2", []);
+const accounting = AccountingDepartment.getInstance();
 
 console.log("===============")
 
@@ -104,6 +124,8 @@ accounting.addEmployee("Max");
 accounting.addEmployee("Mark");
 accounting.printEmployeeInfo();
 
-const employee1 = Department.createEmployee("Joe");
-console.log(employee1);
-console.log(Department.fiscalYear);
+accounting.describe();
+
+// const employee1 = Department.createEmployee("Joe");
+// console.log(employee1);
+// console.log(Department.fiscalYear);

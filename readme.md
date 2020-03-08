@@ -305,3 +305,106 @@ console.log(Department.fiscalYear);
 ````
 
 
+
+====
+
+If you want every inheritaned class to have a method, but not the same one. You can make an empty one in your base class, and force all inherited classes to add an override method with the same name (i.e. one that overrides the blank class):
+
+- add "abstract" infront of method in base class
+- add "abstract" infront of class definition
+
+
+````ts
+abstract class Department {
+  static fiscalYear = 2020;
+  protected employees: string[] = [];
+
+  constructor(protected readonly id: string, public name: string) {
+  }
+
+  static createEmployee(name: string) {
+    return {name: name};
+  }
+
+  // describe(this: Department) {
+  //   console.log(`Department ${this.id}: ${this.name}`)
+  // }
+
+  //instead of the above, you need whats below. Void is the return type: 
+
+  abstract describe(this: Department): void;
+
+}
+````
+
+
+====
+
+singletons & private constructors:
+
+singleton pattern is about ensuring you only have one instance of a certain class. Can be useful when you can't use static methods or properties, or you don't want to or you always just want one object based on a class.
+
+i.e. if you have more than one ITDepartment, thats fine as is, but if you only have one AccountingDepartment, and you want to make it a singleton ... 
+
+if you make the constructor private, you can't call new on it.
+
+````ts
+class AccountingDepartment extends Department {
+  private lastReport: string;
+  //used to check if an instance exists: 
+  private static instance: AccountingDepartment;
+
+  get mostRecentReport() {
+    if (this.lastReport) {
+      return this.lastReport;
+    }
+    throw new Error("No report found");
+  }
+
+  set mostRecentReport(value: string) {
+    if(!value) {
+      throw new Error('Please pass in a valid value');
+    }
+  }
+
+//made private to avoid ability to instantiate outside of static method:
+  private constructor(id: string, private reports: string[]) {
+    super(id, "IT");
+    this.lastReport = reports[0];
+  }
+
+//static method will only work once, since the instance will be filled otherwise. The way to create a new instance on a singleton class
+  static getInstance() {
+    if(AccountingDepartment.instance) {
+      return this.instance;
+    } 
+    this.instance = new AccountingDepartment("d2", []);
+    return this.instance;
+  }
+
+  addReport(text: string) {
+    this.reports.push(text);
+    this.lastReport = text;
+  }
+
+  printReports() {
+    console.log(this.reports);
+  }
+
+  describe() {
+    console.log('Accounting department id:' + this.id)
+  }
+
+  addEmployee(name: string) {
+    if(name === 'Max') {
+      return;
+    }
+
+    this.employees.push(name);
+  }
+}
+
+
+const accounting = AccountingDepartment.getInstance();
+````
+
