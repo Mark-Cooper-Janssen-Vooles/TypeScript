@@ -408,3 +408,381 @@ class AccountingDepartment extends Department {
 const accounting = AccountingDepartment.getInstance();
 ````
 
+---
+
+
+What is an interface?
+An interface describes the structure of an object 
+
+````ts
+//just has the structure (properties, methods and types), not the concrete values:
+interface Person {
+  name: string;
+  age: number;
+
+  greet(phrase: string): void;
+}
+
+let user1: Person;
+
+user1 = {
+  name: "Max",
+  age: 28,
+  greet(phrase: string) {
+    console.log(`${phrase} ${this.name}`);
+  }
+}
+
+user1.greet("Hi there - I am");
+````
+
+An interface and a custom type are not exactly the same: often you can use "interface" or "type" interchangably, interfaces can only be used to describe the structure of an object. But type can store union types etc.. its more flexible. Interface is clearer! (more strongly typed)
+
+
+Interfaces force existance of methods, forces shared functionality among classes etc. Forces a certain structure! Important if other parts of code rely on that structure, makes the code more unbreakable. 
+
+In an interface you can also add the readonly modifier. You can't add public or private though. 
+
+Even though readonly is specified only in the interface, it still makes Person's name readonly: 
+
+````ts
+interface Greetable {
+  readonly name: string;
+  greet(phrase: string): void;
+}
+
+class Person implements Greetable {
+  name: string;
+  age: number = 30;
+  constructor(n: string) {
+    this.name = n;
+  }
+
+  greet(phrase: string) {
+    console.log(`${phrase} ${this.name}`);
+  }
+}
+
+let user1: Greetable;
+
+user1 = new Person('Max');
+
+user1.greet("Hi there - I am");
+
+console.log(user1);
+````
+
+can also extend interfaces: 
+
+````ts
+interface Named {
+  readonly name: string;
+}
+
+interface Greetable extends Named {
+  greet(phrase: string): void;
+}
+````
+
+why would we split interfaces? Maybe on some objects, you want them to only have a name, but on others you need both. 
+
+Can also inherit from multiple interfaces (on classes this was impossibru), i.e. : 
+````ts
+interface Greetable extends Named, AnotherInterface {
+
+}
+````
+
+
+interfaces as function types: 
+
+````ts
+// type AddFn = (a: number, b: number) => number;
+
+//same as the above:
+interface AddFn {
+  (n1: number, n2: number): number;
+}
+
+let add: AddFn;
+
+add = (n1: number, n2: number) => {
+  return n1 + n2;
+}
+````
+
+optional parameters and properties in interfaces: 
+(outputName and myMethod are optional here)
+
+````ts
+interface Named {
+  readonly name: string;
+  outputName?: string;
+  myMethod?() { console.log("hi") }
+}
+````
+
+optional in classes: 
+````ts
+interface Named {
+  readonly name?: string;
+  outputName?: string;
+}
+
+interface Greetable extends Named {
+  greet(phrase: string): void;
+}
+
+class Person implements Greetable {
+  name?: string;
+  age: number = 30;
+  constructor(n?: string) {
+    if(n) {
+      this.name = n;
+    }
+  }
+
+  greet(phrase: string) {
+    if(this.name) {
+      console.log(`${phrase} ${this.name}`);
+    } else {
+      console.log(phrase);
+    }
+  }
+}
+
+````
+
+Intersection types: 
+
+````ts
+// intersection types
+type Admin = {
+  name: string;
+  privileges: string[];
+};
+
+type Employee = {
+  name: string;
+  startDate: Date;
+};
+
+type ElevatedEmployee = Admin & Employee;
+
+const e1: ElevatedEmployee = {
+  name: "Mark",
+  privileges: ["create-server"],
+  startDate: new Date()
+};
+
+type Combinable = string | number;
+type Numeric = number | boolean;
+
+type Universal = Combinable & Numeric;
+````
+
+===
+
+Type guarding in TS: 
+
+````ts
+// type guards:
+function adder(a: Combinable, b: Combinable) {
+  // this is called a "type guard":
+  if (typeof a === "string" || typeof b === "string") {
+    return a.toString() + b.toString();
+  }
+  return a + b;
+}
+
+type UnknownEmployee = Employee | Admin;
+
+function printEmployeeInfo(emp: UnknownEmployee) {
+  console.log("Name: " + emp.name);
+  // typeof won't work here ...
+  // using the 'in' keyword: does 'privileges' exist as a property in emp?
+  if ("privileges" in emp) {
+    console.log("Privileges " + emp.privileges);
+  }
+  if ('startDate' in emp) {
+    console.log("start date " + emp.startDate);
+  }
+};
+
+printEmployeeInfo(e1);
+printEmployeeInfo({name: "Moo", startDate: new Date()});
+
+// another type guard: 'instance of':
+
+class Car {
+  drive() {
+    console.log("Driving ... ");
+  }
+}
+
+class Truck {
+  drive() {
+    console.log("driving a truck...");
+  }
+
+  loadCargo(amount: number) {
+    console.log("Loading cargo..." + amount);
+  }
+}
+
+type Vehicle = Car | Truck;
+
+const v1 = new Car();
+const v2 = new Truck();
+
+function useVehicle(vehicle: Vehicle) {
+  vehicle.drive();
+
+  //can still use 'in' keyword: 
+  // if ('loadCargo' in vehicle) { 
+
+  //or a neater way: 
+  if (vehicle instanceof Truck) {
+    vehicle.loadCargo(1000);
+  }
+}
+
+useVehicle(v1);
+useVehicle(v2);
+````
+
+===
+
+Descriminated Unions: 
+
+````ts
+
+// a discriminated union has one common property in every object that makes up the union, which descrives that union (i.e. here it is the type!)
+
+interface Bird {
+  type: 'bird';
+  flyingSpeed: number;
+}
+
+interface Horse {
+  type: 'horse';
+  runningSpeed: number;
+}
+
+type Animal = Bird | Horse;
+
+function moveAnimal(animal: Animal) {
+  let speed;
+  switch (animal.type) {
+    case 'bird':
+      speed = animal.flyingSpeed;
+      break;
+    case 'horse':
+      speed = animal.runningSpeed;
+      break;
+  }
+  console.log("Moving with speed: " + speed);
+}
+
+moveAnimal({type: 'bird', flyingSpeed: 10});
+````
+
+===
+
+type casting: 
+
+````ts
+
+// const userInputElement = document.getElementById('user-input')!;
+// const userInputElement = <HTMLInputElement>document.getElementById('user-input')!;
+
+//the as keyword is used instead of angled brackets to not clash with react (either of them work!)
+const userInputElement = document.getElementById('user-input')! as HTMLInputElement;
+
+// using <HTMLInputElement>, typescript knows whatever is after, i.e. .value, it checks if that exists on the html input element type and allows it!
+
+userInputElement.value = "Hi there!";
+
+// alternative syntax with a type guard: 
+
+const userInputElement2 = document.getElementById('user-input');
+
+if (userInputElement2) {
+  (userInputElement2 as HTMLInputElement).value = "Hi there again!";
+}
+````
+
+===
+
+index properties: 
+
+````ts
+interface ErrorContainer {
+  // { email: "Not a valid email", username: "Must start with a character"}
+
+  //index type means we need properties of only string:
+  [prop: string]: string;
+}
+
+const errorBag: ErrorContainer = {
+  email: "Not a valid email",
+  username: "Must start with a capital character"
+}
+````
+
+===
+
+function overloads:
+
+````ts
+// overloads: specify what the return is!
+function adder(a: string, b: string): string;
+function adder(a: number, b: number): number;
+function adder(a: Combinable, b: Combinable) {
+  if (typeof a === "string" || typeof b === "string") {
+    return a.toString() + b.toString();
+  }
+  return a + b;
+}
+
+const result = adder("Mark"," Hmm") as string;
+// allows result to be split when using the overloads above:
+result.split(' ');
+````
+
+===
+
+Optional chaining: 
+
+````ts
+//optional chaining:
+const fetchedUserData = {
+  id: "u1",
+  name: "Max",
+  // job: { 
+  //   title: 'ceo', 
+  //   description: 'my own company'
+  // }
+};
+
+//optional chaining: when you don't know if some nested data is set or undefined, i.e. if job isn't set: 
+
+console.log(fetchedUserData?.job?.title);
+//the above still errors, because ts knows for certain that job doesn't exist. but from an api call, it won't know and this is what you'd do. 
+````
+
+===
+
+nullish coalescing: 
+
+````ts
+// nullish coalescing:
+const userInput = '';
+const storedData = userInput || "DEFAULT";
+// if stored data is JUST null or undefined (but not an empty string or other falsy value):
+const storedData1 = userInput ?? "DEFAULT";
+//the '??' is the nullish coalescing thing
+console.log(storedData);
+console.log(storedData1);
+````
+
