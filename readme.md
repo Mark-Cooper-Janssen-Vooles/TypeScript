@@ -786,3 +786,382 @@ console.log(storedData);
 console.log(storedData1);
 ````
 
+====
+
+# Generics
+
+generic types are the ones in the <> like "Array<string>".
+
+generic types give better type safety: allows you to avoid errors!
+
+````ts
+// can do this: const names: string[] = ["hmm", "ok"]
+// or this:
+const names: Array<string> = [ "Mark", "Bob" ];
+
+//the main type is a promise, but the generic type is string in Promise<string>
+const promise: Promise<string> = new Promise((reoslve, reject) => {
+  setTimeout(() => {
+    reoslve('This is done!');
+  }, 2000);
+});
+
+promise.then(data => {
+  data.split(' ');
+})
+````
+
+===
+
+Creating a generic:
+
+````ts
+// Generics:
+
+
+// can do this: const names: string[] = ["hmm", "ok"]
+// or this:
+const names: Array<string> = [ "Mark", "Bob" ];
+
+//the main type is a promise, but the generic type is string in Promise<string>
+const promise: Promise<string> = new Promise((reoslve) => {
+  setTimeout(() => {
+    reoslve('This is done!');
+  }, 2000);
+});
+
+promise.then(data => {
+  data.split(' ');
+})
+````
+
+Generic utility types using 'Partial': 
+
+````ts
+interface CourseGoal {
+  title: string;
+  description: string;
+  completeUntil: Date;
+}
+
+function createCourseGoal(title: string, description: string, completeUntil: Date): CourseGoal {
+  // a partial type ... tells typescript that this is an object which in the end will be a CourseGoal. But for now the properties are all optional, so we can set it to an empty object without errors 
+  let courseGoal: Partial<CourseGoal> = {};
+  courseGoal.title = title;
+  courseGoal.description = description;
+  courseGoal.completeUntil = completeUntil;
+  return courseGoal as CourseGoal;
+}
+````
+
+````ts
+// this tells typescript names2 is an array of strngs, but also read only. so it will yell at us if we try to change it! 
+const names2: Readonly<string[]> = ['Max', 'Sports'];
+// names2.push("Anna") // i.e. this wont work now.
+````
+
+// generic types vs union types:
+// union types lock in a type, where as generic types are more flexible
+
+
+===
+
+Decorators: 
+A feature which can be very useful for meta-programming
+Meta-programming => decorators are well suited for writing code that is easier to use by other developers. 
+
+Need to change tsconfig.json file to uncomment "experimentalDecorators" 
+
+
+If you add a decorator to a class, it recieves its constructor function. 
+
+If you add a decorator to a property, it recieves the target of the property, the 2nd argument we get is the property name, i.e. string | symbol.
+
+````ts
+// decorators: 
+
+//normal decorator function:
+// function Logger(constructor: Function) {
+//   console.log('Logging...');
+//   console.log(constructor);
+// }
+
+//decorator factory: 
+// returns a decorator function, but allows us to configure it when we assign it to something
+function Logger(logString: string) {
+  return function(constructor: Function) {
+    console.log(logString);
+    console.log(constructor);
+  }
+}
+
+//decorators execute when your class is defined, not when it is instantiated
+// @Logger
+@Logger("Logging - PERSON")
+class Person1 {
+  name = "Max";
+
+  constructor() {
+    console.log('Creating person object...');
+  }
+}
+
+const pers = new Person1();
+
+console.log(pers);
+````
+
+
+
+another example of a decorator factory: 
+````ts
+function WithTemplate(template: string, hookId: string) {
+
+  //not interested in constructor, so you call tell typescript with an underscore "i know i get this argument but i dont need it":
+  // return function(_: Function) {
+
+  return function(constructor: any) {
+    const hookEl = document.getElementById(hookId)
+    const p = new constructor(); //creates an instance of the class it is put before!
+    if (hookEl) {
+      hookEl.innerHTML = template;
+      hookEl.querySelector('h1')!.textContent = p.name
+    }
+  }
+}
+
+@WithTemplate('<h1>Title</h1>', 'app')
+class Person1 {
+  name = "Max";
+
+  constructor() {
+    console.log('Creating person object...');
+  }
+}
+
+const pers = new Person1();
+
+````
+
+
+````ts
+// property decorators: 
+
+// If you add a decorator to a property, it recieves the target of the property and its prototypes, the 2nd argument we get is the property name, i.e. string | symbol.
+
+// adding a decorator to a property:
+function Log(target: any, propertyName: string | Symbol) {
+  console.log("Property decorator");
+  console.log(target, propertyName);
+}
+
+//adding a decorator to an accessor:
+// note, PropertyDescriptor is built into typescript.
+function Log2(target: any, name: string, descriptor: PropertyDescriptor) {
+  console.log('Accessor decorator!');
+  console.log(target);
+  console.log(name);
+  console.log(descriptor);
+}
+
+//adding a decorator to a method:
+//the target, if its an instance then its the prototype of the object. if its a static method 
+function Log3(target: any, name: string | symbol, descriptor: PropertyDescriptor) {
+  console.log('Methd decorator!');
+  console.log(target);
+  console.log(name);
+  console.log(descriptor);
+}
+
+//adding a decorator to a paramter: 
+// name here gives back name of the method its in
+//position is the number of the argument 
+function Log4(target: any, name: string | symbol, position: number) {
+  console.log('Parameter decorator!');
+  console.log(target);
+  console.log(name);
+  console.log(position);
+}
+
+class Product {
+  @Log //executes when you define this property to JS as part of the class.
+  title: string;
+  private _price: number;
+
+  @Log2
+  set price(val: number) {
+    if (val > 0) {
+      this._price = val;
+    } else {
+      throw new Error('invalid price - should be postive');
+    }
+  }
+
+  constructor(t: string, p: number) {
+    this.title = t;
+    this._price = p;
+  }
+
+  @Log3
+  getPriceWithTax(@Log4 tax: number) {
+    return this._price * (1 + tax);
+  }
+}
+````
+
+
+
+Ways to use class decorators: 
+
+   //returning a new constructor function, based on original constructor. Now the decorator functionality will only fire when the class is instantiated, not when its jsut called 
+
+   When class is instantiated, new code extends and replaces the old code. 
+
+````ts
+function WithTemplate(template: string, hookId: string) {
+  console.log("template factory");
+  return function<T extends {new(...args: any[]): {name: string}}>(originalConstructor: T) {
+
+    return class extends originalConstructor {
+      // use underscore to tell typescript we know we dont use args
+      constructor(..._args: any[]) {
+        super();
+
+        console.log('rendering template');
+        const hookEl = document.getElementById(hookId)
+        if (hookEl) {
+          hookEl.innerHTML = template;
+          hookEl.querySelector('h1')!.textContent = this.name
+        }
+
+      }
+    }
+
+  }
+}
+````
+
+Other decorators where you can return something: 
+- decorators used for methods (ie log3)
+- decorators used for accessors (ie log2)
+
+````ts
+// returning (and changing) a class with a decoator function 
+
+function Autobind(_target: any, _methodName: string, descriptor: PropertyDescriptor) {
+  const originalMethod = descriptor.value;
+  const adjDescriptor: PropertyDescriptor = {
+    configurable: true,
+    enumerable: false,
+    get() {
+      const boundFn = originalMethod.bind(this);
+      return boundFn;
+    }
+  };
+  return adjDescriptor;
+}
+
+class Printer {
+  message = "This works!";
+
+  @Autobind
+  showMessage() {
+    console.log(this.message);
+  }
+}
+````
+
+===
+
+# Writing Modular code
+
+Splitting code into multiple files, we have:
+- Namespaces
+- File bundling
+
+"namespace" code syntax code helps group code 
+
+alternative to namespaces, the more modern alternative: using ES6 Imports/Exports
+out of the box javascript stuff.
+
+i.e. 
+
+````ts
+
+//make a new file: drag-drop-interfaces.ts
+// drag and drop interfaces
+namespace App {
+  // have to chuck export in front
+  export interface Draggable {
+    someVar: string;
+    anotherVar: boolean;
+  }
+
+  export interface DragTarget {
+    hmm: number;
+    ookok: string;
+  }
+}
+````
+
+````ts
+//in the new app file, i.e. app.ts
+// the below code needs 3 slashes, not a normal comment! picked up by TS!!
+
+/// <reference path="drag-drop-interfaces.ts"/>
+namespace App {
+  //code goes here. needs to be called the same namespace to be picked up 
+}
+
+````
+
+for name spaces also need to have tsconfig.js "outFile" enabled, to something like "./dist/bundle.js" which tells typescript to compile all the files down into one thing
+also need to have "module" set to "amd" (its in CompilerOptions)
+
+Note: need to import everything we use in a project into App.ts for the project to work when using namespace's! Or every file imports exactly what it needs. 
+
+He says name spaces aren't the best way of doing it! 
+
+===
+
+to use es6 import / export syntax:
+get rid of namespace stuff.
+
+in file we're exporting from:
+````ts
+//put an export infront of the function, i.e:
+  export interface Draggable {
+    someVar: string;
+    anotherVar: boolean;
+  }
+````
+in file we're importing from: 
+````ts
+// need to add .js, not .ts! 
+import { Draggable } from '../models/drg-drop.js';
+````
+
+now to use this, we need to switch tsconfig file again. in compilerOptions => 'module' should now be 'es2015'. 'target' needs to be 'es6'. 'outFile' needs to be commented out
+
+in index.html in the script tag import, you need to say type="module", i.e.: 
+````html
+<script type="module" src="dist/app.js"></script>
+````
+
+can also do: 
+
+````ts
+//i.e. it used to be: 
+// import { someFunc, anotherFunc } from '../util/validation.js';
+import * as Validation from '../util/validation.js';
+
+//instead of then 
+//console.log(someFunc);
+//need to:
+console.log(Validation.someFunc); 
+//works like an object! 
+````
+
+this syntax however might not work in older browsers; we may have to use a bundling tool to make it work like webpack (pretty sure its inbuilt into react!)
+
+// skip webpack for now and move onto react
