@@ -1,3 +1,5 @@
+finish the react and node part, then summarise notes for a gist!!
+
 ## TypeScript
 
 ***TS cheatsheet***
@@ -5,6 +7,8 @@
 in terminal run: "tsc <filename>.ts" to compile, or "tsc <filename>.ts -w" to watch, aka reload whenever it changes
 
 to watch the whole project, "tsc --init" (creates tsconfig.json file), can now run "tsc" and it will compile all files in the project. Or "tsc -w" and it will watch them too.
+
+Note: when you use TS with create-react-app, you don't need to do this. Its already all configured for you. 
 
 **Core Types typescript supports**
 
@@ -1165,3 +1169,159 @@ console.log(Validation.someFunc);
 this syntax however might not work in older browsers; we may have to use a bundling tool to make it work like webpack (pretty sure its inbuilt into react!)
 
 // skip webpack for now and move onto react
+
+
+====
+
+# React App with Typescript!!
+
+https://create-react-app.dev/docs/adding-typescript/
+
+npx create-react-app <my-app> --template typescript
+# or
+yarn create react-app <my-app> --template typescript
+
+can edit tsconfig file to my needs.
+default should be fine 
+
+.tsx allows you to write typescript code, and also JSX code. 
+
+components are of type React.FC, which means 'functional component', i.e. it returns JSX i.e:
+
+````ts
+const App: React.FC = () => {
+  const [todos, setTodos] = useState<Todo[]>([]);
+
+  const addToTodos = (todo: string) => {
+    setTodos([
+      ...todos,
+      {
+        id: Math.random().toString(),
+        text: todo
+      }
+    ]);
+  }
+
+  const todoDeleteHandler = (todoId: string) => {
+    const newTodos = todos.filter((todo) => todo.id !== todoId)
+    setTodos(newTodos);
+  }
+
+  return (
+    <div className="App">
+      <NewTodo addToTodos={addToTodos} />
+      <TodoList items={todos} deleteTodo={todoDeleteHandler} />
+    </div>
+  );
+}
+````
+
+When passing props down, need to give it a specific interface so it knows exactly whats going on: 
+
+````ts
+interface TodoListProps {
+  items: {id: string, text: string}[];
+  deleteTodo: (id: string) => void;
+}
+
+const TodoList: React.FC<TodoListProps> = (props) => {
+  return (
+    <ul>
+      {props.items.map((todo) => {
+        return (
+          <li key={todo.id}>{todo.text}
+            //take note of this binding trick, dayumnn (allows you to pass in arguments)
+            <button onClick={props.deleteTodo.bind(null, todo.id)}>Delete</button>
+          </li>
+        )
+        })}
+    </ul>
+  );
+}
+````
+
+not really a TS thing, but interesting use of useRef hook:
+
+````ts
+import React, { useRef } from 'react';
+import './newTodo.css';
+
+interface NewTodoProps {
+  addToTodos: (todoText: string) => void;
+}
+
+const NewTodo: React.FC<NewTodoProps> = (props) => {
+  const textInputRef = useRef<HTMLInputElement>(null);
+
+  const todoSubmitHandler = (event: React.FormEvent) => {
+    event.preventDefault();
+    const enteredText = textInputRef.current!.value;
+    props.addToTodos(enteredText);
+  };
+
+  return (
+    <form onSubmit={todoSubmitHandler}>
+      <div className="form-control">
+        <label htmlFor="todo-text">Todo Text</label>
+        <input type="text" id="todo-text" ref={textInputRef} />
+      </div>
+      <button type="submit">ADD TODO</button>
+    </form>
+  )
+};
+````
+
+
+
+===
+
+## Using Redux with Typescript 
+
+https://redux.js.org/recipes/usage-with-typescript
+
+## Using react-router with TypeScript 
+
+normal npm i to install react router, 
+then: 
+"npm install --save-dev @types/react-router-dom"
+(need to do this if typescript isn't aware of its features!!, i.e. red underline)
+
+General process for new packages: 
+- Check docs to see if it has info about typescript 
+- Install and see if it has support already
+- If not, run "npm install --save-dev @types/<name of package>"
+
+
+# Typescript with Node and Express
+
+Cannot run "node <filename>.ts" => if you've used any typescript. Need to convert it to a js file first, and then run node on that.
+
+to start a file: "npm init" (and hit enter a few times) + "tsc --init". 
+
+in tsconfig:
+- set target to 'es2018'
+- add, under module: "moduleResolution": "node",
+- uncomment / set: "outDir": "./dist",
+- uncomment / set: "rootDir": "./src",
+
+npm install --save express body-parser
+npm install --save-dev nodemon
+npm install --save-dev @types/node ==> (need this especially for typescript to pickup on node syntax!!)
+npm install --save-dev @types/express (this should get rid of the 'any')
+
+to get type highlighting, use this syntax: 
+(hover over app and it will have type as Express)
+````ts
+import express from 'express';
+
+const app = express();
+
+app.listen(3000);
+````
+
+for a general request handler function, this takes care of TS errors: 
+````ts
+import { RequestHandler } from 'express';
+
+export const createTodo: RequestHandler = (req, res, next) => {};
+````
