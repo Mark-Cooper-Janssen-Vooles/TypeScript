@@ -2,6 +2,23 @@ finish the react and node part, then summarise notes for a gist!!
 
 ## TypeScript
 
+Contents: 
+ - TS cheatheet
+ - Core types in TS & Basics
+ - Classes
+ - Interfaces
+ - Intersection types
+ - Type guarding in TS
+ - Descriminated Unions
+ - type casting
+ - Optional chaining
+ - nullish coalescing
+ - Generics
+ - Decorators
+ - Typescript w/ react (check the project reactts)
+ - Typescript w/ redux
+ - Typescript w/ node (check the project nodets)
+
 ***TS cheatsheet***
 
 in terminal run: "tsc <filename>.ts" to compile, or "tsc <filename>.ts -w" to watch, aka reload whenever it changes
@@ -27,8 +44,7 @@ Also if you have "let number1;" then assign it later "number1 = 5", better to do
 
 but don't need to infer every type. I.e. "const number1 = 5;" typescript knows 5 is a number, don't need to say "const number1: number = 5;"
 
-````typescript
-
+````ts
 const person: {
   name: string;
   age: number;
@@ -43,10 +59,8 @@ console.log(person.name);
 but better to let typescript infer like const person = { .. etc
 
 
-````typescript
-
+````ts
 //Of course object types can also be created for nested objects.
-
 //Let's say you have this JavaScript object:
 
     const product = {
@@ -60,7 +74,6 @@ but better to let typescript infer like const person = { .. etc
     }
 
 //This would be the type of such an object:
-
     {
       id: string;
       price: number;
@@ -72,11 +85,10 @@ but better to let typescript infer like const person = { .. etc
     }
 
 //So you have an object type in an object type so to say.
-
 ````
 
 
-````typescript
+````ts
 //enum example: 
 
 enum Role { ADMIN, READ_ONLY, AUTHOR };
@@ -93,7 +105,6 @@ if (person.role === Role.ADMIN) {
 } else if (person.role === Role.READ_ONLY) {
   console.log("is read only")
 }
-
 ````
 
 resultsConversion below is a literal string: we want a string, but it has to be either 'as-number' or 'as-text', or it wont compile! 
@@ -206,7 +217,7 @@ To use debugger in vs code: download vs code extension "debugger for chrome" and
 ---
 
 
-classes: 
+## classes: 
 
 ````ts
 class Department {
@@ -344,7 +355,7 @@ abstract class Department {
 
 ====
 
-singletons & private constructors:
+## singletons & private constructors:
 
 singleton pattern is about ensuring you only have one instance of a certain class. Can be useful when you can't use static methods or properties, or you don't want to or you always just want one object based on a class.
 
@@ -414,6 +425,7 @@ const accounting = AccountingDepartment.getInstance();
 
 ---
 
+## Interfaces
 
 What is an interface?
 An interface describes the structure of an object 
@@ -557,7 +569,7 @@ class Person implements Greetable {
 
 ````
 
-Intersection types: 
+## Intersection types
 
 ````ts
 // intersection types
@@ -571,7 +583,7 @@ type Employee = {
   startDate: Date;
 };
 
-type ElevatedEmployee = Admin & Employee;
+type ElevatedEmployee = Admin & Employee; // this is the intersection type
 
 const e1: ElevatedEmployee = {
   name: "Mark",
@@ -587,7 +599,7 @@ type Universal = Combinable & Numeric;
 
 ===
 
-Type guarding in TS: 
+## Type guarding in TS
 
 ````ts
 // type guards:
@@ -657,7 +669,7 @@ useVehicle(v2);
 
 ===
 
-Descriminated Unions: 
+## Descriminated Unions
 
 ````ts
 
@@ -693,7 +705,7 @@ moveAnimal({type: 'bird', flyingSpeed: 10});
 
 ===
 
-type casting: 
+## type casting
 
 ````ts
 
@@ -756,7 +768,7 @@ result.split(' ');
 
 ===
 
-Optional chaining: 
+## Optional chaining
 
 ````ts
 //optional chaining:
@@ -777,7 +789,7 @@ console.log(fetchedUserData?.job?.title);
 
 ===
 
-nullish coalescing: 
+## nullish coalescing
 
 ````ts
 // nullish coalescing:
@@ -870,7 +882,7 @@ const names2: Readonly<string[]> = ['Max', 'Sports'];
 
 ===
 
-Decorators: 
+## Decorators: 
 A feature which can be very useful for meta-programming
 Meta-programming => decorators are well suited for writing code that is easier to use by other developers. 
 
