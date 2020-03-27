@@ -1,5 +1,3 @@
-finish the react and node part, then summarise notes for a gist!!
-
 ## TypeScript
 
 Contents: 
